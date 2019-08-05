@@ -31,18 +31,23 @@ try:
         #
         import subprocess
         # typical result (string): 'Drives: C:\ D:\ E:\ F:\ G:\ H:\ I:\ J:\ K:\ L:\ M:\ Y:\ Z:\'
-        driveStr = subprocess.check_output("fsutil fsinfo drives")
+        print('CHECK 1 ----------------------------------------------------------------')
+        ## driveStr = subprocess.check_output("fsutil fsinfo drives")
         # typical result (string): 'C:\ D:\ E:\ F:\ G:\ H:\ I:\ J:\ K:\ L:\ M:\ Y:\ Z:\'
-        driveStr = driveStr.strip().lstrip('Drives: ')
+        ## driveStr = driveStr.strip().lstrip('Drives: ')
         # typical result (array of stings): ['C:\\', 'D:\\', 'E:\\', 'F:\\',
         # 'G:\\', 'H:\\', 'I:\\', 'J:\\', 'K:\\', 'L:\\', 'M:\\', 'Y:\\', 'Z:\\']
-        drives = driveStr.split()
-
+        print('CHECK 2 ----------------------------------------------------------------')
+        drives = ['C:\\', 'D:\\', 'E:\\', 'F:\\', 'G:\\', 'H:\\', 'I:\\', 'J:\\', 'K:\\', 'L:\\', 'M:\\', 'N:\\', 'O:\\', 'P:\\', 'Q:\\', 'R:\\', 'S:\\', 'T:\\', 'U:\\', 'V:\\', 'W:\\', 'X:\\', 'Y:\\', 'Z:\\']
+        # Thomas's edit above to avoid admin privledges
+        ## drives = driveStr.split()
+        
         upload_disk = 'Disk not found'
         target_file_found = False
         target_drive_found = False
         for drive in drives:
             final_drive_name = drive.strip().rstrip('\\')   # typical result (string): 'C:'
+            print(final_drive_name)
             try:
                 volume_info = subprocess.check_output('cmd /C dir ' + final_drive_name, stderr=subprocess.STDOUT)
             except Exception as e:

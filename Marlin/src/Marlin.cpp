@@ -153,12 +153,16 @@
   #include "feature/fanmux.h"
 #endif
 
-#if DO_SWITCH_EXTRUDER || ANY(SWITCHING_NOZZLE, PARKING_EXTRUDER, MAGNETIC_PARKING_EXTRUDER, ELECTROMAGNETIC_SWITCHING_TOOLHEAD)
+#if DO_SWITCH_EXTRUDER || ANY(SWITCHING_NOZZLE, PARKING_EXTRUDER, MAGNETIC_PARKING_EXTRUDER)
   #include "module/tool_change.h"
 #endif
 
 #if ENABLED(USE_CONTROLLER_FAN)
   #include "feature/controllerfan.h"
+#endif
+
+#if ENABLED(TRAYCHANGER)
+  #include "feature/traychanger/traychanger.h"
 #endif
 
 #if ENABLED(PRUSA_MMU2)
@@ -860,7 +864,7 @@ void setup() {
 
   setup_killpin();
 
-  #if HAS_TMC220x
+  #if HAS_DRIVER(TMC2208) || HAS_DRIVER(TMC2209)
     tmc_serial_begin();
   #endif
 
@@ -941,7 +945,7 @@ void setup() {
 
   // Load data from EEPROM if available (or use defaults)
   // This also updates variables in the planner, elsewhere
-  settings.first_load();
+  (void)settings.load();
 
   #if HAS_M206_COMMAND
     // Initialize current position based on home_offset
@@ -1076,10 +1080,6 @@ void setup() {
 
   #if ENABLED(PARKING_EXTRUDER)
     pe_solenoid_init();
-  #endif
-
-  #if ENABLED(ELECTROMAGNETIC_SWITCHING_TOOLHEAD)
-    est_init();
   #endif
 
   #if ENABLED(POWER_LOSS_RECOVERY)

@@ -36,14 +36,6 @@ private:
     static bool leds_off_after_print;
   #endif
 
-  static inline void set_done() {
-    #if ENABLED(LED_COLOR_PRESETS)
-      leds.set_default();
-    #else
-      leds.set_off();
-    #endif
-  }
-
 public:
   #if HAS_TEMP_HOTEND
     static inline LEDColor onHotendHeatingStart() { old_intensity = 0; return leds.get_color(); }
@@ -68,14 +60,14 @@ public:
         leds_off_after_print = true;
       #else
         safe_delay(2000);
-        set_done();
+        leds.set_off();
       #endif
     }
 
     static inline void onResumeAfterWait() {
       #if HAS_LEDS_OFF_FLAG
         if (leds_off_after_print) {
-          set_done();
+          leds.set_off();
           leds_off_after_print = false;
         }
       #endif
