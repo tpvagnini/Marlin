@@ -668,7 +668,7 @@ private:
 
   #if ENABLED(TRAYCHANGER)
     static void M254();
-    static void M255();
+    static void M255(boolean wait);
     static void M256();
   #endif
 

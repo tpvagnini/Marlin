@@ -53,4 +53,11 @@
   }
 #endif
 
+#if (defined(INTERNAL_SERIAL_PORT) && INTERNAL_SERIAL_PORT == 0)
+  MarlinSerial internalSerial(LPC_UART0);
+  extern "C" void UART0_IRQHandler(void) {
+    internalSerial.IRQHandler();
+  }
+#endif
+
 #endif // TARGET_LPC1768

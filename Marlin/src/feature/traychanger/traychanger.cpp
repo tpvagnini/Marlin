@@ -1,4 +1,6 @@
 #include "traychanger.h"
+#include "../../Marlin.h"
+#include "../../../module/motion.h"
 
 Traychanger traychanger;
 
@@ -10,26 +12,127 @@ Traychanger traychanger;
 
 
 Traychanger::Traychanger(){
+    init();
+}
+
+int waitForTCBResponse(char cmd){
+    long unsigned int startTime = millis();
+    byte newByte = 0;
+    short serialCase = 0;
+    TRAYCHANGER_SERIAL.write(cmd);     //request the breakout board to start the bump sequence
+    SERIAL_ECHO(cmd);
+    SERIAL_ECHOLN(" written to TCB");
+    while(true){
+        idle();
+        if(TRAYCHANGER_SERIAL.available() > 0 && serialCase != 3){
+            newByte = TRAYCHANGER_SERIAL.read();
+        }
+        switch(serialCase){
+            case 0:
+                if(newByte == cmd){
+                    serialCase = 1;
+                    SERIAL_ECHOLN("Confirmation Recieved");   //F9 shown on LCD
+                    startTime = millis();
+                }
+                if((millis() - startTime) > 8000){
+                    SERIAL_ECHOLN("ERROR TIMEOUT on cmd confirmation");
+                    return 9999;
+                }
+                break;
+            case 1:
+                if(newByte == 0xA1){     //incoming boolean
+                    serialCase = 2;
+                    SERIAL_ECHOLN("Expecting Boolean");
+                }
+                if(newByte == 0xA2){     //incoming integer
+                    serialCase = 3;
+                    SERIAL_ECHOLN("Expecting Int");
+                }
+                if((millis() - startTime) > 30000){
+                    SERIAL_ECHOLN("ERROR TIMEOUT on return code");
+                    return 9999;
+                }
+                break;
+            case 2:
+                if(newByte == 0x00 || newByte == 0x01){
+                    SERIAL_ECHOLN("Recieved Boolean");
+                    return newByte;
+                }
+                break;
+            case 3:     //broken snce we alread got the 1st byte
+                byte intPartA;
+                byte intPartB;
+                if(TRAYCHANGER_SERIAL.available() > 1){
+                    SERIAL_ECHOLN("Recieved Integer");
+                    intPartA = TRAYCHANGER_SERIAL.read();
+                    intPartB = TRAYCHANGER_SERIAL.read();
+                    int outputInt = (intPartA << 8) + intPartB;
+                    return outputInt;
+                }
+                if((millis() - startTime) > 30000){
+                    SERIAL_ECHOLN("ERROR TIMEOUT on recieve Int");
+                    return 9999;
+                }
+                break;
+        }
+    }
 }
 
 void Traychanger::init(){
     TRAYCHANGER_SERIAL.begin(115200);
+    TRAYCHANGER_SERIAL.write(0xFF);
+    /*for(int i = 0; i<256; i++){
+        //TRAYCHANGER_SERIAL.write(i);
+        delay(100);
+    }*/
+    check_version();
 }
 
-void Traychanger::loadPlate(){
-    TRAYCHANGER_SERIAL.write(CMD_LOAD_PLATE);
+boolean Traychanger::loadPlate(){
+    //TRAYCHANGER_SERIAL.write(CMD_LOAD_PLATE);
+    //waitForTCBResponse();
+    return true;
 }
 
-void Traychanger::unloadPlate(){
+boolean Traychanger::unloadPlate(){
+    //add serial request
+    while(true){    //add the serial responses here
+        idle();
+    }
+    return true;
+}
 
+void Traychanger::bumpPlate(){
+    waitForTCBResponse(0x0C);
+    SERIAL_ECHOLN("Exiting cmd 0x0C");
 }
 
 void Traychanger::debug(){
-
+    //will be a full report printout of values similar to TMC debug command
 }
 
 void Traychanger::check_version(){
+}
 
+
+int Traychanger::getOccupiedShelf(){
+    float ultraHeight = (float)waitForTCBResponse(0x0D);  //filler for serial.read()
+    SERIAL_ECHO("Ultraheight = ");
+    SERIAL_ECHOLN(ultraHeight);
+    SERIAL_ECHOLN((ultraHeight - BOTTOM_SHELF_ULTRA)/SHELF_DIST);
+    return (SHELF_NUM - roundf((ultraHeight - BOTTOM_SHELF_ULTRA)/SHELF_DIST));   //calculate shelf here based on NUM_SHELVES, TOP_SHELF_ULTRA, AND BOTTOM_SHELF_ULTRA
+}
+
+float Traychanger::shelfToZ(int targetShelf){
+    if(targetShelf <= SHELF_NUM)
+        return (SHELF_DIST * (targetShelf-1)) + TOP_SHELF_Z;   //make sure the float math works since you're dividing and multiplying by ints
+    else
+        return 0.0;
+}
+
+int Traychanger::heightToShelf(){
+    int shelves = ((current_position[2]+3)/SHELF_DIST) + 1;
+    return shelves;
 }
 
 

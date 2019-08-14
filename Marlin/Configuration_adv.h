@@ -2476,8 +2476,12 @@
  * Traychanger
  */
 #if ENABLED(TRAYCHANGER)
-  #define TRAYCHANGER_SERIAL MYSERIAL1
+  //#include "src/inc/MarlinConfigPre.h"
+  //#include "src/HAL/HAL_LPC1768/MarlinSerial.h"
+  //MarlinSerial TRAYCHANGER_SERIAL(LPC_UART0);
+  #define TRAYCHANGER_SERIAL internalSerial //MYSERIAL1//MSerial//
 #endif
+
 
 /**
  * Prusa Multi-Material Unit v2

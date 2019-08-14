@@ -15,7 +15,7 @@
 //(may want to use axis_unhomed_error(), see G01 for example)
 //for mqp could implement a camera system that also detects print failures
 
-void GcodeSuite::M254() {   //
+void GcodeSuite::M254() {   //Unload plate
     /* 1. Get current z position as the print height -> calculate number of shelves, can put a helper function in the traychanger class that doesn't use serial //motion.h has current_position[XYZE] and void report_current_position();
      * 2. Get the ultrasonic distance over serial and figure out the target shelf
      * 3. Convert shelf target to z and check that it's within the machine limits
@@ -27,19 +27,37 @@ void GcodeSuite::M254() {   //
      * 9. Run M255?
      */
 
-    int printHeight = current_position[2];
+    int targetShelf = traychanger.getOccupiedShelf() + traychanger.heightToShelf();
+    SERIAL_ECHO("Target Shelf: ");
+    SERIAL_ECHOLN(targetShelf);
+    int targetZ = traychanger.shelfToZ(targetShelf);
+    SERIAL_ECHO("Target Z: ");
+    SERIAL_ECHOLN(targetZ);
+    if(targetZ > 0.0){
+        do_blocking_move_to_z(targetZ, 10.0);
+    }
+    else{
+        //exit and return an error / full storage message DO NOT CONTINUE PROGRAM;
+    }
+    //traychanger.unloadPlate();
+    //do_blocking_move_to_z(current_position[2] + BUMP_DIST);
+    //traychanger.bumpPlate();
+    //home axis
+    //M255(false);
+}
 
-    
-    traychanger.loadPlate();
+void GcodeSuite::M255(boolean wait){
+    //home xy and move to safe position
+    //home z 
+    //move z to LOAD_HEIGHT
+    traychanger.bumpPlate();
+    /*if(!traychanger.loadPlate()){
+        //if loading fails, display the error on the lcd and over serial, exit if wait == false, wait if wait == true
+    }*/
+}
 
+void GcodeSuite::M256(){
 
-  /*int8_t index = parser.intval('E', -1),
-         type = parser.intval('F', -1);
-
-  if (WITHIN(index, 0, 4) && WITHIN(type, 0, 2))
-    mmu2.set_filament_type(index, type);
-  else
-    SERIAL_ECHO_MSG("M403 - bad arguments.")*/
 }
 
 #endif

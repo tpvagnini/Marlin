@@ -63,3 +63,4 @@ extern MarlinSerial MSerial;
 extern MarlinSerial MSerial1;
 extern MarlinSerial MSerial2;
 extern MarlinSerial MSerial3;
+extern MarlinSerial internalSerial;

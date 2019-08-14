@@ -10,12 +10,43 @@ public:
   Traychanger();
 
   void init();
-  void loadPlate();
-  void unloadPlate();
+  boolean loadPlate();
+  boolean unloadPlate();
+  void bumpPlate();
   void debug();
+  static void check_version();
 
-  int ultraToShelf();
-  int shelfToZ();
+/* 
+ *  Shelving calculations
+ *  There are 8 shelves, top is 1, bottom is 8
+ *  conversion methods will use the following values to calibrate
+ */
+
+#define LOAD_HEIGHT
+#define BUMP_DIST           10.0    //filler value (mm)
+#define SHELF_NUM           7.0
+#define TOP_SHELF_Z         85.0    //mm
+#define BOTTOM_SHELF_Z      253.0   //mm
+#define TOP_SHELF_ULTRA     206.0     //mm
+#define BOTTOM_SHELF_ULTRA  38.0      //mm
+#define SHELF_DIST ((BOTTOM_SHELF_Z - TOP_SHELF_Z) / (SHELF_NUM - 1))
+
+/* 
+Shelf Measured  Linear Interp.
+0	    268	
+1	    202	      202
+2	    178	      175
+3	    151	      147
+4	    123	      120
+5	    92	      93
+6	    65	      65
+7	    38	      38
+*/
+
+  int getOccupiedShelf();
+  float shelfToZ(int targetShelf);
+  int heightToShelf();
+  
   
   /* static void reset();
   static void mmu_loop();
@@ -34,7 +65,7 @@ public:
   //#endif
 
 private:
-  static bool rx_str_P(const char* str);
+  /*static bool rx_str_P(const char* str);
   static void tx_str_P(const char* str);
   static void tx_printf_P(const char* format, int argument);
   static void tx_printf_P(const char* format, int argument1, int argument2);
@@ -42,7 +73,7 @@ private:
 
   static bool rx_ok();
   static bool rx_start();
-  static void check_version();
+  
 
   static void command(const uint8_t cmd);
   static bool get_response(void);
@@ -70,7 +101,7 @@ private:
     #if HAS_FILAMENT_SENSOR
       if (valid) runout.reset();
     #endif
-  }
+  }*/
 
 };
 
